@@ -12,7 +12,7 @@ import (
 )
 
 type Task struct {
-	ID   int    `json:"id"`
+	ID   int    `json:"id_todos"`
 	Item string `json:"item"`
 }
 
@@ -28,7 +28,7 @@ func main() {
 	}
 	defer db.Close()
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS todos (id SERIAL PRIMARY KEY, item TEXT)")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS todos (id_todos SERIAL PRIMARY KEY, item TEXT)")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +40,8 @@ func main() {
 	router.HandleFunc("/todos/{id}", updateTodo(db)).Methods("PUT")
 	router.HandleFunc("/todos/{id}", deleteTodo(db)).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8000", middleware(router)))
+	log.Println("Server starting on :8002")
+	log.Fatal(http.ListenAndServe(":8002", middleware(router)))
 }
 
 func middleware(next http.Handler) http.Handler {
@@ -83,7 +84,7 @@ func getTodo(db *sql.DB) http.HandlerFunc {
 		id := params["id"]
 
 		var t Task
-		err := db.QueryRow("SELECT * FROM todos WHERE id = $1", id).Scan(&t.ID, &t.Item)
+		err := db.QueryRow("SELECT * FROM todos WHERE id_todos = $1", id).Scan(&t.ID, &t.Item)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -98,7 +99,7 @@ func createTodo(db *sql.DB) http.HandlerFunc {
 		var t Task
 		json.NewDecoder(r.Body).Decode(&t)
 
-		err := db.QueryRow("INSERT INTO todos (item) VALUES ($1) RETURNING id", t.Item).Scan(&t.ID)
+		err := db.QueryRow("INSERT INTO todos (item) VALUES ($1) RETURNING id_todos", t.Item).Scan(&t.ID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -115,7 +116,7 @@ func updateTodo(db *sql.DB) http.HandlerFunc {
 		params := mux.Vars(r)
 		id := params["id"]
 
-		_, err := db.Exec("UPDATE todos SET item = $1 WHERE id = $2", t.Item, id)
+		_, err := db.Exec("UPDATE todos SET item = $1 WHERE id_todos = $2", t.Item, id)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -130,12 +131,12 @@ func deleteTodo(db *sql.DB) http.HandlerFunc {
 		id := params["id"]
 
 		var t Task
-		err := db.QueryRow("SELECT * FROM todos WHERE id = $1", id).Scan(&t.ID, &t.Item)
+		err := db.QueryRow("SELECT * FROM todos WHERE id_todos = $1", id).Scan(&t.ID, &t.Item)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		} else {
-			_, err := db.Exec("DELETE FROM todos WHERE id = $1", id)
+			_, err := db.Exec("DELETE FROM todos WHERE id_todos = $1", id)
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
 				return
