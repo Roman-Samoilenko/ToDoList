@@ -39,6 +39,11 @@ func main() {
 	router.HandleFunc("/todos", createTodo(db)).Methods("POST")
 	router.HandleFunc("/todos/{id}", updateTodo(db)).Methods("PUT")
 	router.HandleFunc("/todos/{id}", deleteTodo(db)).Methods("DELETE")
+	router.HandleFunc("/health",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK"))
+		})
 
 	log.Println("Server starting on :8002")
 	log.Fatal(http.ListenAndServe(":8002", middleware(router)))
