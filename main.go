@@ -43,6 +43,7 @@ func main() {
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("OK"))
+			log.Print("health")
 		})
 
 	log.Println("Server starting on :8002")
